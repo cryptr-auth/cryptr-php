@@ -5,20 +5,16 @@ namespace Cryptr;
 use Exception;
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
+use Cryptr\CryptrClaimsValidator;
 
 class Cryptr
 {
   private string $cryptrBaseUrl;
 
-  public function __construct(string $cryptrBaseUrl = null)
+  public function __construct(string $cryptrBaseUrl)
   {
-    $this->setCryptrBaseUrl($cryptrBaseUrl);
-  }
-
-  protected function setCryptrBaseUrl(string $cryptrBaseUrl = null)
-  {
-    $newCryptrBaseUrl = $cryptrBaseUrl;
-    $this->cryptrBaseUrl = self::retrieveOrError($newCryptrBaseUrl);
+    assert(!empty($cryptrBaseUrl), '$cryptrBaseUrl is required');
+    $this->cryptrBaseUrl = $cryptrBaseUrl;
   }
 
   public function getCryptrBaseUrl()
@@ -29,21 +25,22 @@ class Cryptr
   public function validateToken(string $token, array $allowedOrigins): bool
   {
     $tenant = self::getTokenTenant($token);
-    $issuer = $this->getCryptrBaseUrl() . "/t/" . $tenant;
+    $issuer = $this->getCryptrBaseUrl() . '/t/' . $tenant;
     $jwksUri = $this->buildJwksUri($issuer);
-    $jwks = self::getJwks($jwksUri);
+    $jwks = $this->getJwks($jwksUri);
     $publicKeys = JWK::parseKeySet($jwks);
     $decodedToken = JWT::decode($token, $publicKeys, array('RS256'));
     $validator = new CryptrClaimsValidator($issuer, $allowedOrigins);
     return $validator->isValid($decodedToken);
   }
 
-  private function buildJwksUri(string $tenant): string
+
+  private function buildJwksUri(string $issuer): string
   {
-    return $this->getCryptrBaseUrl() . "/t/" . $tenant . '/.well-known';
+    return $issuer . '/.well-known';
   }
 
-  private static function getJwks($jwksUri)
+  private function getJwks(string $jwksUri): array
   {
     try {
       $content = file_get_contents($jwksUri, true);
@@ -72,14 +69,5 @@ class Cryptr
       echo $e->getMessage();
       throw new \Exception("Invalid token to fetch claims", 1);
     }
-  }
-
-  private static function retrieveOrError($inputVal, string $message = "Missing attribute")
-  {
-    if (isset($inputVal)) {
-      return $inputVal;
-    }
-
-    return new Exception($message, 1);
   }
 }
