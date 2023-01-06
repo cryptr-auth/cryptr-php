@@ -26,14 +26,16 @@ class Cryptr
     return $this->cryptrBaseUrl;
   }
 
-  public function validateToken(string $token): bool
+  public function validateToken(string $token, array $allowedOrigins): bool
   {
     $tenant = self::getTokenTenant($token);
-    $jwksUri = $this->buildJwksUri($tenant);
+    $issuer = $this->getCryptrBaseUrl() . "/t/" . $tenant;
+    $jwksUri = $this->buildJwksUri($issuer);
     $jwks = self::getJwks($jwksUri);
     $publicKeys = JWK::parseKeySet($jwks);
-    $decoded = JWT::decode($token, $publicKeys, array('RS256'));
-    return $decoded->tnt == $tenant;
+    $decodedToken = JWT::decode($token, $publicKeys, array('RS256'));
+    $validator = new CryptrClaimsValidator($issuer, $allowedOrigins);
+    return $validator->isValid($decodedToken);
   }
 
   private function buildJwksUri(string $tenant): string
