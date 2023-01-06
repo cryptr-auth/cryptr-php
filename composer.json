@@ -1,0 +1,17 @@
+{
+    "name": "cryptr/cryptr-php",
+    "description": "Cryptr Package to handle Cryptr authentication processes",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thibaud RENAUX",
+            "email": "thibaud@cryptr.co"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
