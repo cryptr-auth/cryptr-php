@@ -3,6 +3,8 @@
 namespace Cryptr;
 
 use Exception;
+use Firebase\JWT\JWK;
+use Firebase\JWT\JWT;
 
 class Cryptr
 {
@@ -24,9 +26,55 @@ class Cryptr
     return $this->cryptrBaseUrl;
   }
 
+  public function validateToken(string $token): bool
+  {
+    $tenant = self::getTokenTenant($token);
+    $jwksUri = $this->buildJwksUri($tenant);
+    $jwks = self::getJwks($jwksUri);
+    $publicKeys = JWK::parseKeySet($jwks);
+    $decoded = JWT::decode($token, $publicKeys, array('RS256'));
+    return $decoded->tnt == $tenant;
+  }
+
+  private function buildJwksUri(string $tenant): string
+  {
+    return $this->getCryptrBaseUrl() . "/t/" . $tenant . '/.well-known';
+  }
+
+  private static function getJwks($jwksUri)
+  {
+    try {
+      $content = file_get_contents($jwksUri, true);
+      return json_decode($content, true);
+    } catch (Exception $e) {
+      echo 'Cannot fetch JWKS : ', $e->getMessage(), "\n";
+      return [];
+    }
+  }
+
+  private static function getClaims(string $token): ?object
+  {
+    try {
+      [, $payload_b64] = explode('.', $token);
+      return JWT::jsonDecode(JWT::urlsafeB64Decode($payload_b64));
+    } catch (Exception $e) {
+      return null;
+    }
+  }
+
+  private static function getTokenTenant(string $token): ?string
+  {
+    try {
+      return self::getClaims($token)->tnt;
+    } catch (Exception $e) {
+      echo $e->getMessage();
+      throw new \Exception("Invalid token to fetch claims", 1);
+    }
+  }
+
   private static function retrieveOrError($inputVal, string $message = "Missing attribute")
   {
-    if(isset($inputVal)) {
+    if (isset($inputVal)) {
       return $inputVal;
     }
 
