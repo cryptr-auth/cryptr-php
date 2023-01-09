@@ -14,7 +14,6 @@ class CryptrClaimsValidator
   
   public function isValid(object $decodedToken)
   {
-    fwrite(STDERR, print_r(__METHOD__, TRUE));
     return $this->validateExpiration($decodedToken) &&
       $this->validateIssuedAt($decodedToken)
       && $this->validateIssuer($decodedToken)
@@ -23,7 +22,6 @@ class CryptrClaimsValidator
 
   public function validateExpiration(object $decodedToken): bool
   {
-    fwrite(STDERR, print_r(__METHOD__, TRUE));
     $expiration = DateTime::createFromFormat('U', $decodedToken->exp);
     if ($expiration < $this->currentTime()) {
       throw new Exception('The expiration of the JWT claim (exp) should be greater than current time');
