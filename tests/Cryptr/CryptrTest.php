@@ -27,11 +27,32 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
   /**
    * @test
    */
-  public function testWrongConfig()
+  public function testWrongConfigWithEmptyBaseUrl()
   {
     $this->expectException(AssertionError::class);
-    $this->expectExceptionMessage('$cryptrBaseUrl is required');
+    $this->expectExceptionMessage('cryptrBaseUrl is required');
     new Cryptr("");
+  }
+  
+  /**
+   * @test
+   */
+  public function testWrongConfigWithNullBaseUrl()
+  {
+    $this->expectException(AssertionError::class);
+    $this->expectExceptionMessage('cryptrBaseUrl is required');
+    new Cryptr();
+  }
+  
+  /**
+   * @test
+   */
+  public function testRightConfigWithNullBaseUrl()
+  {
+    global $cryptrBaseUrl;
+    $_ENV['CRYPTR_BASE_URL'] = $cryptrBaseUrl;
+    $cryptr = new Cryptr();
+    $this->assertEquals($cryptr->getCryptrBaseUrl(), 'http://localhost:4000');
   }
   
   public function testProperConfig()
@@ -56,38 +77,47 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
   }
 
   /**
-   * @expectedException Exception
-   * @expectedExceptionMessage Invalid token to fetch claims
-   */
-  public function testWrongToken()
-  {
-    global $cryptrBaseUrl;
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('Invalid token to fetch claims');
-    $cryptr = new Cryptr($cryptrBaseUrl);
-    $cryptr->validateToken('azerty', []);
-  }
-  
-  public function testRightToken()
-  {
-    global $unexpiredToken, $cryptrBaseUrl, $clientUrl;
-    $cryptr = new Cryptr($cryptrBaseUrl);
-    $allowedOrigins = [$clientUrl];
-    $this->assertTrue($cryptr->validateToken($unexpiredToken, $allowedOrigins));
-  }
-
-  /**
    * @test
    */
-  public function testTokenWithKeysMock()
+  public function testRightToken()
   {
     global $key, $unexpiredToken, $cryptrBaseUrl, $clientUrl;
     $jwks = array("keys" => array($key));
     $cryptr = new Cryptr($cryptrBaseUrl);
     $publicKeys = \Firebase\JWT\JWK::parseKeySet($jwks);
     $allowedOrigins = [$clientUrl];
-    $res = $cryptr->validateToken($unexpiredToken, $allowedOrigins, $publicKeys);
+    $res = $cryptr->validateTokenWithKeys($unexpiredToken, $publicKeys, $allowedOrigins);
     $this->assertTrue($res);
+  }
+
+  /**
+   * @expectedException Exception
+   * @expectedExceptionMessage Invalid token to fetch claims
+   */
+  public function testWrongToken()
+  {
+    global $key, $cryptrBaseUrl, $clientUrl;
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('Invalid token to fetch claims');
+    $jwks = array("keys" => array($key));
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $publicKeys = \Firebase\JWT\JWK::parseKeySet($jwks);
+    $allowedOrigins = [$clientUrl];
+    $cryptr->validateToken('azerty', $publicKeys, $allowedOrigins);
+  }
+
+  /**
+   * @test
+  */
+  public function testTokenWithoutOriginShouldFail()
+  {
+    global $key, $cryptrBaseUrl, $unexpiredToken;
+    $this->expectException(\AssertionError::class);
+    $this->expectExceptionMessage('allowedOrigins is required');
+    $jwks = array('keys' => array($key));
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $publicKeys = \Firebase\JWT\JWK::parseKeySet($jwks);
+    $cryptr->validateTokenWithKeys($unexpiredToken, $publicKeys, null);
   }
 
   public function testClaimsForRightToken()

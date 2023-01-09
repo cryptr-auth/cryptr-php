@@ -9,7 +9,8 @@ class CryptrClaimsValidator
 {
   public function __construct(protected string $issuer, protected array $allowedOrigins)
   {
-    
+    assert(!empty($issuer), 'issuer is required');
+    assert(!empty($allowedOrigins), 'allowedOrigins is required');
   }
   
   public function isValid(object $decodedToken)

@@ -10,11 +10,18 @@ use Cryptr\CryptrClaimsValidator;
 class Cryptr
 {
   private string $cryptrBaseUrl;
+  private array $allowedOrigins;
 
-  public function __construct(string $cryptrBaseUrl)
+  public function __construct(string $cryptrBaseUrl = null, array $allowedOrigins = null)
   {
-    assert(!empty($cryptrBaseUrl), '$cryptrBaseUrl is required');
-    $this->cryptrBaseUrl = $cryptrBaseUrl;
+    $baseUrlFromEnv = isset($_ENV['CRYPTR_BASE_URL']) ? $_ENV['CRYPTR_BASE_URL'] : '';
+    $newCryptrBaseUrl = $cryptrBaseUrl ?: $baseUrlFromEnv;
+    assert(!empty($newCryptrBaseUrl), 'cryptrBaseUrl is required');
+    $this->cryptrBaseUrl = $newCryptrBaseUrl;
+
+    $allowedOriginsFromEnv = isset($_ENV['CRYPTR_ALLOWED_ORIGINS'])
+      ? explode(";", $_ENV['CRYPTR_ALLOWED_ORIGINS']) : [];
+    $this->allowedOrigins = $allowedOrigins ?: $allowedOriginsFromEnv;
   }
 
   public function getCryptrBaseUrl()
@@ -22,19 +29,19 @@ class Cryptr
     return $this->cryptrBaseUrl;
   }
 
-  public function validateToken(string $token, array $allowedOrigins): bool
+  public function validateToken(string $token, array $allowedOrigins = null): bool
   {
     $tenant = self::getTokenTenant($token);
     $jwksUri = $this->buildJwksUriFromTenant($tenant);
     $jwks = $this->getJwks($jwksUri);
     $publicKeys = JWK::parseKeySet($jwks);
-    return $this->validateTokenWithKeys($token, $allowedOrigins, $publicKeys);
+    return $this->validateTokenWithKeys($token, $publicKeys, $allowedOrigins ?: $this->allowedOrigins);
   }
 
-  public function validateTokenWithKeys(string $token, array $allowedOrigins, array $publicKeys): bool
+  public function validateTokenWithKeys(string $token, array $publicKeys, array $allowedOrigins = null): bool
   {
     $decodedToken = JWT::decode($token, $publicKeys, array('RS256'));
-    $validator = new CryptrClaimsValidator($decodedToken->iss, $allowedOrigins);
+    $validator = new CryptrClaimsValidator($decodedToken->iss, $allowedOrigins ?: $this->allowedOrigins);
     return $validator->isValid($decodedToken);
   }
 
