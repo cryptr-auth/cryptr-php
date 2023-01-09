@@ -17,6 +17,8 @@ $key = array(
   "x5c" => array("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"),
   "x5t_sha256" => "uCo7jM9dizykIG_-y6rbO0j8HreCyPMeU4IykFIYNiM="
 );
+$cryptrBaseUrl = 'http://localhost:4000';
+$clientUrl = "http://localhost:8000";
 
 final class CryptrTest extends \PHPUnit\Framework\TestCase
 {
@@ -33,8 +35,9 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
   
   public function testProperConfig()
   {
-    $cryptr = new Cryptr('https://some.base.url');
-    $this->assertEquals($cryptr->getCryptrBaseUrl(), 'https://some.base.url');
+    global $cryptrBaseUrl;
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $this->assertEquals($cryptr->getCryptrBaseUrl(), $cryptrBaseUrl);
   }
 
   /**
@@ -43,17 +46,18 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
    */
   public function testWrongToken()
   {
+    global $cryptrBaseUrl;
     $this->expectException(Exception::class);
     $this->expectExceptionMessage('Invalid token to fetch claims');
-    $cryptr = new Cryptr('http://localhost:4000');
+    $cryptr = new Cryptr($cryptrBaseUrl);
     $cryptr->validateToken('azerty', []);
   }
   
   public function testRightToken()
   {
-    global $unexpiredToken;
-    $cryptr = new Cryptr('http://localhost:4000');
-    $allowedOrigins = ["http://localhost:8000"];
+    global $unexpiredToken, $cryptrBaseUrl, $clientUrl;
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $allowedOrigins = [$clientUrl];
     $this->assertTrue($cryptr->validateToken($unexpiredToken, $allowedOrigins));
   }
 
@@ -62,11 +66,11 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
    */
   public function testTokenWithKeysMock()
   {
-    global $key, $unexpiredToken;
+    global $key, $unexpiredToken, $cryptrBaseUrl, $clientUrl;
     $jwks = array("keys" => array($key));
-    $cryptr = new Cryptr('http://localhost:4000');
+    $cryptr = new Cryptr($cryptrBaseUrl);
     $publicKeys = \Firebase\JWT\JWK::parseKeySet($jwks);
-    $allowedOrigins = ["http://localhost:8000"];
+    $allowedOrigins = [$clientUrl];
     $res = $cryptr->validateToken($unexpiredToken, $allowedOrigins, $publicKeys);
     $this->assertTrue($res);
   }
