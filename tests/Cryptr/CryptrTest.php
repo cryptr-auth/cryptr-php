@@ -88,4 +88,16 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
     $res = $cryptr->validateToken($unexpiredToken, $allowedOrigins, $publicKeys);
     $this->assertTrue($res);
   }
+
+  /**
+   * @test
+   */
+
+   public funciton testClaims()
+   {
+    global $cryptrBaseUrl, $unexpiredToken;
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $expectedClaims = array();
+    $this->assertEquals($cryptr->getClaims($unexpiredToken), $expectedClaims);
+   }
 }
