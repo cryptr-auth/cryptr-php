@@ -38,12 +38,12 @@ class Cryptr
     return $validator->isValid($decodedToken);
   }
 
-  protected function buildIssuer(string $tenant): string
+  public function buildIssuer(string $tenant): string
   {
     return $this->getCryptrBaseUrl() . '/t/' . $tenant;
   }
 
-  private function buildJwksUriFromTenant(string $tenant): string
+  public function buildJwksUriFromTenant(string $tenant): string
   {
     return $this->buildIssuer($tenant) . '/.well-known';
   }

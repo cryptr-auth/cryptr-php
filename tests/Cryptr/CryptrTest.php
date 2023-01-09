@@ -40,6 +40,20 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
     $this->assertEquals($cryptr->getCryptrBaseUrl(), $cryptrBaseUrl);
   }
 
+  public function testIssuerBuild()
+  {
+    global $cryptrBaseUrl;
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $this->assertEquals($cryptr->buildIssuer('shark-academy'), 'http://localhost:4000/t/shark-academy');
+  }
+  
+  public function testJwksUriBuild()
+  {
+    global $cryptrBaseUrl;
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $this->assertEquals($cryptr->buildJwksUriFromTenant('shark-academy'), 'http://localhost:4000/t/shark-academy/.well-known');
+  }
+
   /**
    * @expectedException Exception
    * @expectedExceptionMessage Invalid token to fetch claims
