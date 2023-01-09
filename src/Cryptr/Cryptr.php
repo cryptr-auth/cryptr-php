@@ -59,7 +59,7 @@ class Cryptr
     }
   }
 
-  private static function getClaims(string $token): ?object
+  public static function getClaims(string $token): ?object
   {
     try {
       [, $payload_b64] = explode('.', $token);

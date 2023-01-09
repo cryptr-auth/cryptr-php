@@ -19,6 +19,7 @@ $key = array(
 );
 $cryptrBaseUrl = 'http://localhost:4000';
 $clientUrl = "http://localhost:8000";
+$tenant = "drag-n-survey";
 
 final class CryptrTest extends \PHPUnit\Framework\TestCase
 {
@@ -89,15 +90,36 @@ final class CryptrTest extends \PHPUnit\Framework\TestCase
     $this->assertTrue($res);
   }
 
-  /**
-   * @test
-   */
-
-   public funciton testClaims()
-   {
-    global $cryptrBaseUrl, $unexpiredToken;
+  public function testClaimsForRightToken()
+  {
+    global $cryptrBaseUrl, $unexpiredToken, $clientUrl, $tenant;
     $cryptr = new Cryptr($cryptrBaseUrl);
-    $expectedClaims = array();
-    $this->assertEquals($cryptr->getClaims($unexpiredToken), $expectedClaims);
-   }
+    $expectedClaims = array(
+      'application_metadata' => new stdClass(),
+      'aud' => $clientUrl,
+      'cid' => '7d70eed5-e602-4541-b7a6-fceb77bd1a44',
+      'dbs' => 'sandbox',
+      'email' => 'thibaud@drag-n-survey.co',
+      'exp' => 1736326441,
+      'iat' => 1673254441,
+      'ips' => 'cryptr',
+      'iss' => $cryptrBaseUrl . '/t/' . $tenant,
+      'jti' => '9a193f86-b1fd-411c-950b-6377479cf7ba',
+      'jtt' => 'access',
+      'sci' => null,
+      'scp' => ['openid', 'email', 'profile'],
+      'sub' => '90c07374-a564-476f-86be-f82953866eed',
+      'tnt' => 'drag-n-survey',
+      'ver' => 1
+ 
+    );
+    $this->assertEquals(get_object_vars($cryptr->getClaims($unexpiredToken)), $expectedClaims);
+  }
+
+  public function testClaimsForWrongToken()
+  {
+    global $cryptrBaseUrl;
+    $cryptr = new Cryptr($cryptrBaseUrl);
+    $this->assertNull($cryptr->getClaims('azerty'));
+  }
 }
