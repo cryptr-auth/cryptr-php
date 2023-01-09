@@ -4,6 +4,7 @@ require_once __DIR__ . '../../../vendor/autoload.php';
 
 use Cryptr\CryptrClaimsValidator;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Util\Xml\Validator;
 
 class CryptrClaimsValidatorTest extends TestCase
 {
@@ -42,12 +43,20 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidRightExpiration()
   {
-    $mock = $this->createMock(CryptrClaimsValidator::class);
-    $mock->method('currentTime')
-    ->willReturn(new DateTime('@1587027200')); // 2020-04-17 00:00:00
+    $mock = $this->getMockBuilder(CryptrClaimsValidator::class)
+              ->setMethods(['currentTime'])
+              ->getMock();
+    $mock->expects($this->once())
+          ->method('currentTime')
+          ->will($this->returnValue(new DateTime('@1587027200')));
+    // $mock = $this->createMock(CryptrClaimsValidator::class);
+    // $mock->method('currentTime')
+    // ->willReturn(new DateTime('@1587027200')); // 2020-04-17 00:00:00
 
     // 2020-04-17 00:00:01
     $decodedToken = (object)['exp' => 1587027201];
-    $this->assertTrue($mock->validateExpiration($decodedToken));
+    $audience = 'http://localhost:3000';
+    $validator = new CryptrClaimsValidator("", [$audience]);
+    $this->assertTrue($validator->validateExpiration($decodedToken));
   }
 }

@@ -25,22 +25,30 @@ class Cryptr
   public function validateToken(string $token, array $allowedOrigins): bool
   {
     $tenant = self::getTokenTenant($token);
-    $issuer = $this->getCryptrBaseUrl() . '/t/' . $tenant;
-    $jwksUri = $this->buildJwksUri($issuer);
+    $jwksUri = $this->buildJwksUriFromTenant($tenant);
     $jwks = $this->getJwks($jwksUri);
     $publicKeys = JWK::parseKeySet($jwks);
+    return $this->validateTokenWithKeys($token, $allowedOrigins, $publicKeys);
+  }
+
+  public function validateTokenWithKeys(string $token, array $allowedOrigins, array $publicKeys): bool
+  {
     $decodedToken = JWT::decode($token, $publicKeys, array('RS256'));
-    $validator = new CryptrClaimsValidator($issuer, $allowedOrigins);
+    $validator = new CryptrClaimsValidator($decodedToken->iss, $allowedOrigins);
     return $validator->isValid($decodedToken);
   }
 
-
-  private function buildJwksUri(string $issuer): string
+  protected function buildIssuer(string $tenant): string
   {
-    return $issuer . '/.well-known';
+    return $this->getCryptrBaseUrl() . '/t/' . $tenant;
   }
 
-  private function getJwks(string $jwksUri): array
+  private function buildJwksUriFromTenant(string $tenant): string
+  {
+    return $this->buildIssuer($tenant) . '/.well-known';
+  }
+
+  public function getJwks(string $jwksUri): array
   {
     try {
       $content = file_get_contents($jwksUri, true);
