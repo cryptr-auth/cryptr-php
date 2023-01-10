@@ -69,7 +69,7 @@ class CryptrClaimsValidator
 
   public static function validateScopes(object $decodedToken, array $authorizedScopes): bool
   {
-    if (array_intersect($decodedToken->scp, $authorizedScopes) != $decodedToken->scp) {
+    if (array_intersect($decodedToken->scp, $authorizedScopes) != $authorizedScopes) {
       throw new Exception('The scopes of the JWT claim (scp) are not compliants');
     }
 

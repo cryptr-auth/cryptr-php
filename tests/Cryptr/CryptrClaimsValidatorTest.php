@@ -183,4 +183,13 @@ class CryptrClaimsValidatorTest extends TestCase
     $decodedToken = (object) ['scp' => ['something']];
     CryptrClaimsValidator::validateScopes($decodedToken, $scopes);
   }
+  
+  public function testWrongExpectedScopes()
+  {
+    $expectedScope = ['openid', 'email', 'profile', 'some_custom_scope '];
+    $this->expectException(\Exception::class);
+    $this->expectExceptionMessage('The scopes of the JWT claim (scp) are not compliant');
+    $decodedToken = (object) ['scp' => ['openid', 'email', 'profile']];
+    CryptrClaimsValidator::validateScopes($decodedToken, $expectedScope);
+  }
 }
