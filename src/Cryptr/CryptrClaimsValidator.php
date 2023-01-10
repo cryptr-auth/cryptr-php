@@ -9,10 +9,8 @@ use Exception;
 
 class CryptrClaimsValidator
 {
-  public function __construct(protected string $issuer, protected array $allowedOrigins)
+  public function __construct(protected ?string $issuer = null, protected ?array $allowedOrigins = null)
   {
-    assert(!empty($issuer), 'issuer is required');
-    assert(!empty($allowedOrigins), 'allowedOrigins is required');
   }
   
   public function isValid(object $decodedToken)
@@ -43,6 +41,7 @@ class CryptrClaimsValidator
 
   public function validateIssuer(object $decodedToken): bool
   {
+    assert(!empty($this->issuer), 'issuer is required');
     if ($decodedToken->iss != $this->issuer) {
       throw new Exception('The issuer of the JWT claim (iss) must conform to the issuer from config');
     }
@@ -51,7 +50,8 @@ class CryptrClaimsValidator
 
   public function validateAudience(object $decodedToken): bool
   {
-    if(!in_array($decodedToken->aud, $this->allowedOrigins)) {
+     assert(!empty($this->allowedOrigins), 'allowedOrigins is required');
+    if (!in_array($decodedToken->aud, $this->allowedOrigins)) {
       throw new Exception('The audience of the JWT claim (aud) must conform to audience from config');
     }
     return true;
