@@ -78,11 +78,16 @@ class Cryptr
 
   public static function getClaims(string $token): ?object
   {
+    $wrongFormatException = new Exception("Invalid JWT format", 1);
     try {
-      [, $payload_b64] = explode('.', $token);
+      $parts = explode('.', $token);
+      if (count($parts) < 2) {
+        throw $wrongFormatException;
+      }
+      [, $payload_b64] = $parts;
       return JWT::jsonDecode(JWT::urlsafeB64Decode($payload_b64));
     } catch (Exception $e) {
-      throw new \Exception("Invalid JWT format", 1);
+      throw $wrongFormatException;
     }
   }
 
