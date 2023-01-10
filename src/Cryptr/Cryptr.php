@@ -74,17 +74,12 @@ class Cryptr
       [, $payload_b64] = explode('.', $token);
       return JWT::jsonDecode(JWT::urlsafeB64Decode($payload_b64));
     } catch (Exception $e) {
-      return null;
+      throw new \Exception("Invalid JWT format", 1);
     }
   }
 
   private static function getTokenTenant(string $token): ?string
   {
-    try {
-      return self::getClaims($token)->tnt;
-    } catch (Exception $e) {
-      echo $e->getMessage();
-      throw new \Exception("Invalid token to fetch claims", 1);
-    }
+    return self::getClaims($token)->tnt;
   }
 }
