@@ -11,6 +11,31 @@ $resourceOwnerId = '75ee9050-453a-475f-8528-1f92b9b1b77e';
 $scopes = ['openid', 'email', 'profile'];
 class CryptrClaimsValidatorTest extends TestCase
 {
+
+  /**
+   * @expectedException Exception
+   * @expectedExceptionMessage issuer is required
+   */
+  public function testWrongIssuerValidator()
+  {
+    global $audience;
+    $this->expectException(\AssertionError::class);
+    $this->expectExceptionMessage('issuer is required');
+    new CryptrClaimsValidator("", [$audience]);
+  }
+
+  /**
+   * @expectedException AssertionError
+   * @expectedExceptionMessage allowedOrigins is required
+   */
+  public function testWrongOriginsValidator()
+  {
+    global $issuer;
+    $this->expectException(\AssertionError::class);
+    $this->expectExceptionMessage('allowedOrigins is required');
+    new CryptrClaimsValidator($issuer, []);
+  }
+
   /**
    * @test
    */

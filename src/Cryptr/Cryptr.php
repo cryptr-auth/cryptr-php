@@ -9,11 +9,28 @@ use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
 use Cryptr\CryptrClaimsValidator;
 
+/**
+ * Class Cryptr
+ */
 class Cryptr
 {
+  /**
+   * Cryptr Server URL
+   */
   private string $cryptrBaseUrl;
+  /**
+   * All Client Origins that JWT has to conform
+   */
   private array $allowedOrigins;
 
+  /**
+   * Cryptr constructor
+   * 
+   * @param  string|null $cryptrBaseUrl . Cryptr Server URL, if not provided, will be retrieve from $_ENV['CRYPTR_BASE_URL'].
+   * @param  array|null $allowedOrigins . Allowed Origins that JWT should conform to, if not provided, will be retrieve from $_ENV['CRYPTR_ALLOWED_ORIGINS'].
+   * 
+   * @throws \Exception When cryptrBaseUrl is null (either from construct or $_ENV)
+   */
   public function __construct(string $cryptrBaseUrl = null, array $allowedOrigins = null)
   {
     $baseUrlFromEnv = isset($_ENV['CRYPTR_BASE_URL']) ? $_ENV['CRYPTR_BASE_URL'] : '';
@@ -26,11 +43,22 @@ class Cryptr
     $this->allowedOrigins = $allowedOrigins ?: $allowedOriginsFromEnv;
   }
 
+  /**
+   * @return string Return the current Cryptr Sever URL.
+   */
   public function getCryptrBaseUrl()
   {
     return $this->cryptrBaseUrl;
   }
 
+  /**
+   * @param  string $token REQUIRED. JWT token to validate
+   * @param  array|null $allowedOrigins . Origins to validate JWT "aud" claim, if not provided class property will be used
+   * 
+   * @return bool If the JWT $token provided is valid accordingly to used config
+   *
+   * @throws \Exception When token is not a JWT or not conforms to used config with proper message
+   */
   public function validateToken(string $token, array $allowedOrigins = null): bool
   {
     $tenant = self::getTokenTenant($token);
@@ -40,6 +68,15 @@ class Cryptr
     return $this->validateTokenWithKeys($token, $publicKeys, $allowedOrigins ?: $this->allowedOrigins);
   }
 
+  /**
+   * @param  string $token REQUIRED. JWT token to validate
+   * @param  array $publicKeys REQUIRED. Public keys to validate the token.
+   * @param  array|null $allowedOrigins . Origins to validate JWT "aud" claim, if not provided class property will be used
+   * 
+   * @return bool If the JWT $token provided is valid accordingly to used config
+   *
+   * @throws \Exception When token is not a JWT or not conforms to either $publicKeys or used config, giving proper message
+   */
   public function validateTokenWithKeys(string $token, array $publicKeys, array $allowedOrigins = null): bool
   {
     $validToken = false;
@@ -76,6 +113,13 @@ class Cryptr
     }
   }
 
+  /**
+   * @param  string $token REQUIRED. JWT token to decode
+   *
+   * @return  object|null . The decoded object claims of given JWT token
+   *
+   * @throws  \Exception When $token is not a JWT or decoding failed.
+   */  
   public static function getClaims(string $token): ?object
   {
     $wrongFormatException = new Exception("Invalid JWT format", 1);
