@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Cryptr;
+namespace Cryptr\SDK;
 
 use Exception;
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
-use Cryptr\CryptrClaimsValidator;
+use Cryptr\SDK\CryptrClaimsValidator;
 
 /**
  * Class Cryptr

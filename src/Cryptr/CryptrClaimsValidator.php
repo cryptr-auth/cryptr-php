@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cryptr;
+namespace Cryptr\SDK;
 
 use DateTime;
 use Exception;
