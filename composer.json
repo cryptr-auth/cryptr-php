@@ -30,8 +30,6 @@
         "test": "./vendor/bin/phpunit tests/"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "symfony/var-dumper": "^6.2",
-        "phpunit/php-code-coverage": "^9.2"
+        "phpunit/phpunit": "^9.5"
     }
 }
