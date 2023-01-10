@@ -49,9 +49,9 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidRightExpiration()
   {
-    global $audience;
+    global $audience, $issuer;
     $decodedToken = (object)['exp' => 1736326441];
-    $validator = new CryptrClaimsValidator("", [$audience]);
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $this->assertTrue($validator->validateExpiration($decodedToken));
   }
   
@@ -60,11 +60,11 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidWrongExpiration()
   {
-    global $audience;
+    global $audience, $issuer;
     $this->expectException(\Exception::class);
     $this->expectExceptionMessage('The expiration of the JWT claim (exp) should be greater than current time');
     $decodedToken = (object)['exp' => 1673254441];
-    $validator = new CryptrClaimsValidator("", [$audience]);
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $validator->validateExpiration($decodedToken);
   }
   
@@ -73,9 +73,9 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidRightIssuedAt()
   {
-    global $audience;
+    global $audience, $issuer;
     $decodedToken = (object)['iat' => 1673254441];
-    $validator = new CryptrClaimsValidator("", [$audience]);
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $this->assertTrue($validator->validateIssuedAt($decodedToken));
   }
   
@@ -84,11 +84,11 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidWrongIssuedAt()
   {
-    global $audience;
+    global $audience, $issuer;
     $this->expectException(\Exception::class);
     $this->expectExceptionMessage('The issuedAt of the JWT claim (iat) should be lower than current time');
     $decodedToken = (object)['iat' => 1736326441];
-    $validator = new CryptrClaimsValidator("", [$audience]);
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $validator->validateIssuedAt($decodedToken);
   }
   
@@ -97,8 +97,8 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidRightIssuer()
   {
-    global $issuer;
-    $validator = new CryptrClaimsValidator($issuer, []);
+    global $issuer, $audience;
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $decodedToken = (object) ['iss' => $issuer];
     $this->assertTrue($validator->validateIssuer($decodedToken));
   }
@@ -108,10 +108,10 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidWrongIssuer()
   {
-    global $issuer;
+    global $audience, $issuer;
     $this->expectException(\Exception::class);
     $this->expectExceptionMessage('The issuer of the JWT claim (iss) must conform to the issuer from config');
-    $validator = new CryptrClaimsValidator($issuer, []);
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $decodedToken = (object) ['iss' => 'http://example.com'];
     $validator->validateIssuer($decodedToken);
   }
@@ -121,8 +121,8 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidRightAudience()
   {
-    global $audience;
-    $validator = new CryptrClaimsValidator("", [$audience]);
+    global $audience, $issuer;
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $decodedToken = (object) ['aud' => $audience];
     $this->assertTrue($validator->validateAudience($decodedToken));
   }
@@ -132,10 +132,10 @@ class CryptrClaimsValidatorTest extends TestCase
    */
   public function testValidWrongAudience()
   {
-    global $audience;
+    global $audience, $issuer;
     $this->expectException(\Exception::class);
     $this->expectExceptionMessage('The audience of the JWT claim (aud) must conform to audience from config');
-    $validator = new CryptrClaimsValidator("", [$audience]);
+    $validator = new CryptrClaimsValidator($issuer, [$audience]);
     $decodedToken = (object) ['aud' => 'http://example.com'];
     $validator->validateAudience($decodedToken);
   }
@@ -182,5 +182,14 @@ class CryptrClaimsValidatorTest extends TestCase
     $this->expectExceptionMessage('The scopes of the JWT claim (scp) are not compliant');
     $decodedToken = (object) ['scp' => ['something']];
     CryptrClaimsValidator::validateScopes($decodedToken, $scopes);
+  }
+  
+  public function testWrongExpectedScopes()
+  {
+    $expectedScope = ['openid', 'email', 'profile', 'some_custom_scope '];
+    $this->expectException(\Exception::class);
+    $this->expectExceptionMessage('The scopes of the JWT claim (scp) are not compliant');
+    $decodedToken = (object) ['scp' => ['openid', 'email', 'profile']];
+    CryptrClaimsValidator::validateScopes($decodedToken, $expectedScope);
   }
 }

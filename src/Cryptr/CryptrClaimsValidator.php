@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Cryptr;
 
 use DateTime;
@@ -23,7 +25,7 @@ class CryptrClaimsValidator
 
   public function validateExpiration(object $decodedToken): bool
   {
-    $expiration = DateTime::createFromFormat('U', $decodedToken->exp);
+    $expiration = DateTime::createFromFormat('U', strval($decodedToken->exp));
     if ($expiration < $this->currentTime()) {
       throw new Exception('The expiration of the JWT claim (exp) should be greater than current time');
     }
@@ -32,7 +34,7 @@ class CryptrClaimsValidator
 
   public function validateIssuedAt(object $decodedToken): bool
   {
-    $issuedAt = DateTime::createFromFormat('U', $decodedToken->iat);
+    $issuedAt = DateTime::createFromFormat('U', strval($decodedToken->iat));
     if ($this->currentTime() < $issuedAt) {
       throw new Exception('The issuedAt of the JWT claim (iat) should be lower than current time');
     }
@@ -41,6 +43,7 @@ class CryptrClaimsValidator
 
   public function validateIssuer(object $decodedToken): bool
   {
+    assert(!empty($this->issuer), 'issuer is required');
     if ($decodedToken->iss != $this->issuer) {
       throw new Exception('The issuer of the JWT claim (iss) must conform to the issuer from config');
     }
@@ -49,7 +52,7 @@ class CryptrClaimsValidator
 
   public function validateAudience(object $decodedToken): bool
   {
-    if(!in_array($decodedToken->aud, $this->allowedOrigins)) {
+    if (!in_array($decodedToken->aud, $this->allowedOrigins)) {
       throw new Exception('The audience of the JWT claim (aud) must conform to audience from config');
     }
     return true;
@@ -66,7 +69,7 @@ class CryptrClaimsValidator
 
   public static function validateScopes(object $decodedToken, array $authorizedScopes): bool
   {
-    if (array_intersect($decodedToken->scp, $authorizedScopes) != $decodedToken->scp) {
+    if (array_intersect($decodedToken->scp, $authorizedScopes) != $authorizedScopes) {
       throw new Exception('The scopes of the JWT claim (scp) are not compliants');
     }
 

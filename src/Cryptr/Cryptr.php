@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Cryptr;
 
 use Exception;
@@ -40,9 +42,17 @@ class Cryptr
 
   public function validateTokenWithKeys(string $token, array $publicKeys, array $allowedOrigins = null): bool
   {
-    $decodedToken = JWT::decode($token, $publicKeys, array('RS256'));
-    $validator = new CryptrClaimsValidator($decodedToken->iss, $allowedOrigins ?: $this->allowedOrigins);
-    return $validator->isValid($decodedToken);
+    $validToken = false;
+    try {
+      JWT::decode($token, $publicKeys, array('RS256'));
+      $validToken = true;
+    } catch (\Exception $e) {
+      $validToken = false;
+    }
+    $claims = self::getClaims($token);
+    $validator = new CryptrClaimsValidator($claims->iss, $allowedOrigins ?: $this->allowedOrigins);
+    $isValid = $validator->isValid($claims);
+    return $isValid && $validToken;
   }
 
   public function buildIssuer(string $tenant): string
@@ -68,21 +78,21 @@ class Cryptr
 
   public static function getClaims(string $token): ?object
   {
+    $wrongFormatException = new Exception("Invalid JWT format", 1);
     try {
-      [, $payload_b64] = explode('.', $token);
+      $parts = explode('.', $token);
+      if (count($parts) < 2) {
+        throw $wrongFormatException;
+      }
+      [, $payload_b64] = $parts;
       return JWT::jsonDecode(JWT::urlsafeB64Decode($payload_b64));
     } catch (Exception $e) {
-      return null;
+      throw $wrongFormatException;
     }
   }
 
   private static function getTokenTenant(string $token): ?string
   {
-    try {
-      return self::getClaims($token)->tnt;
-    } catch (Exception $e) {
-      echo $e->getMessage();
-      throw new \Exception("Invalid token to fetch claims", 1);
-    }
+    return self::getClaims($token)->tnt;
   }
 }
