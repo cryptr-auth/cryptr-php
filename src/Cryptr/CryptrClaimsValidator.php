@@ -9,8 +9,10 @@ use Exception;
 
 class CryptrClaimsValidator
 {
-  public function __construct(protected ?string $issuer = null, protected ?array $allowedOrigins = null)
+  public function __construct(protected string $issuer, protected array $allowedOrigins)
   {
+    assert(!empty($issuer), 'issuer is required');
+    assert(!empty($allowedOrigins), 'allowedOrigins is required');
   }
   
   public function isValid(object $decodedToken)
@@ -23,7 +25,7 @@ class CryptrClaimsValidator
 
   public function validateExpiration(object $decodedToken): bool
   {
-    $expiration = DateTime::createFromFormat('U', $decodedToken->exp);
+    $expiration = DateTime::createFromFormat('U', strval($decodedToken->exp));
     if ($expiration < $this->currentTime()) {
       throw new Exception('The expiration of the JWT claim (exp) should be greater than current time');
     }
@@ -32,7 +34,7 @@ class CryptrClaimsValidator
 
   public function validateIssuedAt(object $decodedToken): bool
   {
-    $issuedAt = DateTime::createFromFormat('U', $decodedToken->iat);
+    $issuedAt = DateTime::createFromFormat('U', strval($decodedToken->iat));
     if ($this->currentTime() < $issuedAt) {
       throw new Exception('The issuedAt of the JWT claim (iat) should be lower than current time');
     }
@@ -50,7 +52,6 @@ class CryptrClaimsValidator
 
   public function validateAudience(object $decodedToken): bool
   {
-     assert(!empty($this->allowedOrigins), 'allowedOrigins is required');
     if (!in_array($decodedToken->aud, $this->allowedOrigins)) {
       throw new Exception('The audience of the JWT claim (aud) must conform to audience from config');
     }
