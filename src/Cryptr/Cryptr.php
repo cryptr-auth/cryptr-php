@@ -42,9 +42,23 @@ class Cryptr
 
   public function validateTokenWithKeys(string $token, array $publicKeys, array $allowedOrigins = null): bool
   {
-    $decodedToken = JWT::decode($token, $publicKeys, array('RS256'));
-    $validator = new CryptrClaimsValidator($decodedToken->iss, $allowedOrigins ?: $this->allowedOrigins);
-    return $validator->isValid($decodedToken);
+    $validToken = false;
+    $error = null;
+    try {
+      JWT::decode($token, $publicKeys, array('RS256'));
+      $validToken = true;
+    } catch (\Exception $e) {
+      $error = $e;
+      $validToken = false;
+    }
+    $claims = self::getClaims($token);
+    if (isset($claims)) {
+      $validator = new CryptrClaimsValidator($claims->iss, $allowedOrigins ?: $this->allowedOrigins);
+      $isValid = $validator->isValid($claims);
+      return $isValid && $validToken;
+    } else {
+      throw $error;
+    }
   }
 
   public function buildIssuer(string $tenant): string
