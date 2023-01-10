@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '../../../vendor/autoload.php';
 
-use Cryptr\CryptrClaimsValidator;
+use Cryptr\SDK\CryptrClaimsValidator;
 use PHPUnit\Framework\TestCase;
 
 $issuer = 'http://localhost:4000/t/shark-academy';
